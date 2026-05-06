@@ -2,7 +2,7 @@
 
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 # Use tomllib on Python 3.11+, otherwise tomli
 if sys.version_info >= (3, 11):
@@ -23,7 +23,7 @@ class ConfigLoader:
     DEFAULT_RULES_FILE = "rules.toml"
 
     @staticmethod
-    def load_rules(project_path: Path | str) -> RuleSet:
+    def load_rules(project_path: Union[Path, str]) -> RuleSet:
         """Load rules from project directory."""
         project_path = Path(project_path)
         rules_file = project_path / ConfigLoader.DEFAULT_RULES_DIR / ConfigLoader.DEFAULT_RULES_FILE
@@ -106,7 +106,7 @@ class ConfigLoader:
         return rule_set
 
     @staticmethod
-    def save_baseline(project_path: Path | str, baseline_data: dict) -> None:
+    def save_baseline(project_path: Union[Path, str], baseline_data: dict) -> None:
         """Save quality baseline for comparison."""
         project_path = Path(project_path)
         rules_dir = project_path / ConfigLoader.DEFAULT_RULES_DIR
@@ -129,7 +129,7 @@ class ConfigLoader:
             pass
 
     @staticmethod
-    def load_baseline(project_path: Path | str) -> Optional[dict]:
+    def load_baseline(project_path: Union[Path, str]) -> Optional[dict]:
         """Load saved quality baseline."""
         project_path = Path(project_path)
         baseline_file = project_path / ConfigLoader.DEFAULT_RULES_DIR / "baseline.toml"

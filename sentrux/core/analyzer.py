@@ -1,7 +1,7 @@
 """Main analyzer for project code quality."""
 
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from sentrux.core.metrics import MetricsCalculator
 from sentrux.core.parser import ProjectParser
@@ -11,7 +11,7 @@ from sentrux.models.analysis import AnalysisResult
 class ProjectAnalyzer:
     """Analyze a project and calculate quality metrics."""
 
-    def __init__(self, project_path: Path | str):
+    def __init__(self, project_path: Union[Path, str]):
         self.project_path = Path(project_path)
 
     def analyze(self) -> AnalysisResult:
