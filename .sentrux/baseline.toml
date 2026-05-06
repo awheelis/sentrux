@@ -1,0 +1,8 @@
+# Quality baseline
+[baseline]
+overall_score = 7563
+modularity = 0.7391304347826086
+acyclicity = 0.8
+depth = 0.8
+equality = 0.47531868370902364
+redundancy = 0.935064935064935
