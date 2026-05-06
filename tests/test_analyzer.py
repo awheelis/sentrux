@@ -3,7 +3,6 @@
 import tempfile
 from pathlib import Path
 
-import pytest
 
 from sentrux.core.analyzer import ProjectAnalyzer
 

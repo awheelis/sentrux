@@ -2,7 +2,7 @@
 
 from typing import List
 
-from sentrux.models.analysis import AnalysisResult, FileAnalysis
+from sentrux.models.analysis import AnalysisResult
 from sentrux.models.rules import RuleSet
 
 

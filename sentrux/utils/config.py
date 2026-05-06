@@ -121,7 +121,7 @@ class ConfigLoader:
         try:
             with open(baseline_file, "w") as f:
                 f.write("# Quality baseline\n")
-                f.write(f"[baseline]\n")
+                f.write("[baseline]\n")
                 for key, value in baseline_data.items():
                     if isinstance(value, (int, float)):
                         f.write(f'{key} = {value}\n')

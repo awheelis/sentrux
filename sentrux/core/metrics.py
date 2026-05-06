@@ -1,8 +1,8 @@
 """Metrics calculation for code quality analysis."""
 
-from typing import Dict, List, Set
+from typing import Dict, List
 
-from sentrux.models.analysis import AnalysisResult, FileAnalysis, QualityScore
+from sentrux.models.analysis import AnalysisResult, QualityScore
 
 
 class MetricsCalculator:

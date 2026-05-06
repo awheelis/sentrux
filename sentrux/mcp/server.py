@@ -3,12 +3,9 @@
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
-from sentrux.core.analyzer import ProjectAnalyzer
-from sentrux.core.rules import RulesEngine
 from sentrux.mcp.tools import MCPTools
-from sentrux.utils.config import ConfigLoader
 
 
 class MCPServer:
