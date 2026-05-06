@@ -33,9 +33,7 @@ class RulesEngine:
         if max_cycles and hasattr(analysis, "cycles"):
             cycles_count = len(getattr(analysis, "cycles", []))
             if cycles_count > max_cycles.max_value:
-                violations.append(
-                    f"Cycle count {cycles_count} exceeds max {max_cycles.max_value}"
-                )
+                violations.append(f"Cycle count {cycles_count} exceeds max {max_cycles.max_value}")
 
         # Check max cyclomatic complexity
         max_cc = self.rule_set.get_constraint("max_cc")
@@ -83,9 +81,7 @@ class RulesEngine:
                         to_layer = file_to_layer.get(to_file)
                         break
 
-                if to_layer and not self.rule_set.is_dependency_allowed(
-                    from_layer, to_layer
-                ):
+                if to_layer and not self.rule_set.is_dependency_allowed(from_layer, to_layer):
                     violations.append(
                         f"Boundary violation: {from_file} (layer {from_layer}) "
                         f"cannot import from {import_name} (layer {to_layer})"

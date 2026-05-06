@@ -114,9 +114,12 @@ class MCPTools:
                 "result": {
                     "current": analysis.quality_score.to_dict(),
                     "baseline": current,
-                    "trend": "improving"
-                    if current and analysis.quality_score.overall_score > current.get("overall_score", 0)
-                    else "declining" if current else "unknown",
+                    "trend": (
+                        "improving"
+                        if current
+                        and analysis.quality_score.overall_score > current.get("overall_score", 0)
+                        else "declining" if current else "unknown"
+                    ),
                 },
             }
         except Exception as e:
@@ -148,9 +151,7 @@ class MCPTools:
                 "result": {
                     "gaps": gaps,
                     "coverage_percent": (
-                        ((len(files) - len(gaps)) / len(files) * 100)
-                        if files
-                        else 0
+                        ((len(files) - len(gaps)) / len(files) * 100) if files else 0
                     ),
                 },
             }

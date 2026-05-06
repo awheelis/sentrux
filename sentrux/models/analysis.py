@@ -5,6 +5,7 @@ from typing import Dict, List, Optional
 @dataclass
 class Metric:
     """Individual metric measurement."""
+
     name: str
     value: float
     description: str
@@ -13,6 +14,7 @@ class Metric:
 @dataclass
 class QualityScore:
     """Overall quality score and component metrics."""
+
     overall_score: int  # 0-10000
     modularity: float
     acyclicity: float
@@ -36,6 +38,7 @@ class QualityScore:
 @dataclass
 class FileAnalysis:
     """Analysis results for a single file."""
+
     path: str
     module_name: str
     functions: List[str] = field(default_factory=list)
@@ -49,6 +52,7 @@ class FileAnalysis:
 @dataclass
 class AnalysisResult:
     """Complete analysis result for a project."""
+
     project_path: str
     files: Dict[str, FileAnalysis] = field(default_factory=dict)
     quality_score: Optional[QualityScore] = None

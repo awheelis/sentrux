@@ -59,9 +59,9 @@ def check(path: str, output_json: bool):
         if output_json:
             result = {
                 "path": str(project_path),
-                "quality_score": analysis.quality_score.to_dict()
-                if analysis.quality_score
-                else None,
+                "quality_score": (
+                    analysis.quality_score.to_dict() if analysis.quality_score else None
+                ),
                 "violations": violations,
                 "passed": len(violations) == 0,
             }

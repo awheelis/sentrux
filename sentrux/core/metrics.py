@@ -126,13 +126,13 @@ class MetricsCalculator:
 
         # Calculate variance
         size_variance = sum((s - avg_size) ** 2 for s in sizes) / len(sizes)
-        complexity_variance = (
-            sum((c - avg_complexity) ** 2 for c in complexities) / len(complexities)
+        complexity_variance = sum((c - avg_complexity) ** 2 for c in complexities) / len(
+            complexities
         )
 
         # Normalize to 0-1 (lower variance = higher equality)
-        size_cv = (size_variance ** 0.5) / (avg_size or 1)
-        complexity_cv = (complexity_variance ** 0.5) / (avg_complexity or 1)
+        size_cv = (size_variance**0.5) / (avg_size or 1)
+        complexity_cv = (complexity_variance**0.5) / (avg_complexity or 1)
 
         equality = 1.0 - min(1.0, (size_cv + complexity_cv) / 4)
         return max(0.0, equality)

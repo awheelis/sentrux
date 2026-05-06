@@ -5,6 +5,7 @@ from typing import Dict, List, Optional
 @dataclass
 class Constraint:
     """A single constraint rule."""
+
     name: str
     max_value: Optional[int] = None
     description: str = ""
@@ -13,6 +14,7 @@ class Constraint:
 @dataclass
 class LayerDefinition:
     """Definition of a code layer."""
+
     name: str
     patterns: List[str] = field(default_factory=list)
     description: str = ""
@@ -21,6 +23,7 @@ class LayerDefinition:
 @dataclass
 class BoundaryRule:
     """A boundary rule between layers."""
+
     source_layer: str
     target_layer: str
     allowed: bool = False
@@ -30,6 +33,7 @@ class BoundaryRule:
 @dataclass
 class RuleSet:
     """Complete set of architectural rules."""
+
     constraints: Dict[str, Constraint] = field(default_factory=dict)
     layers: Dict[str, LayerDefinition] = field(default_factory=dict)
     layer_order: List[str] = field(default_factory=list)

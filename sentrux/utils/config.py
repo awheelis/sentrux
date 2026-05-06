@@ -124,7 +124,7 @@ class ConfigLoader:
                 f.write("[baseline]\n")
                 for key, value in baseline_data.items():
                     if isinstance(value, (int, float)):
-                        f.write(f'{key} = {value}\n')
+                        f.write(f"{key} = {value}\n")
         except Exception:
             pass
 
