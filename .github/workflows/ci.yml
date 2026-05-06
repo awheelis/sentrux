@@ -3,7 +3,6 @@ name: CI
 on:
   push:
     branches: [main]
-    tags-ignore: ['v*']  # Don't run on tag pushes — ci-release handles those
   pull_request:
     branches: [main]
 
@@ -12,64 +11,36 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest]
-        # Windows: tree-sitter-scss build script incompatible with MSVC
-        # Will re-enable when upstream fixes -Wno-unused-parameter flag
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+        os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
         with:
-          fetch-depth: 0  # Need tags for grammar download from previous release
+          python-version: ${{ matrix.python-version }}
 
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Install Linux dependencies
-        if: runner.os == 'Linux'
+      - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libxcb-render0-dev libxcb-shape0-dev \
-            libxcb-xfixes0-dev libxkbcommon-dev libssl-dev libvulkan-dev
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
 
-      - name: Cache cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
-
-      - name: Build
-        run: cargo build
-
-      - name: Install language grammars
-        shell: bash
+      - name: Lint with ruff
         run: |
-          # Try each recent release tag until we find one with grammars.
-          # On tag pushes, the NEW release won't have grammars yet (still building).
-          # The previous release always has them. No race condition.
-          PLATFORM=$([ "$RUNNER_OS" = "macOS" ] && echo "darwin-arm64" || echo "linux-x86_64")
-          mkdir -p ~/.sentrux/plugins
-          DOWNLOADED=false
-          for TAG in $(git tag --sort=-v:refname | head -5); do
-            URL="https://github.com/sentrux/sentrux/releases/download/${TAG}/grammars-${PLATFORM}.tar.gz"
-            if curl -fsSL "$URL" -o /tmp/grammars.tar.gz 2>/dev/null; then
-              echo "Grammar bundle downloaded from ${TAG}"
-              tar xzf /tmp/grammars.tar.gz -C ~/.sentrux/plugins/
-              DOWNLOADED=true
-              break
-            fi
-          done
-          if [ "$DOWNLOADED" = false ]; then
-            echo "Grammar download failed from all recent tags"
-          fi
-          # Sync embedded plugin configs (TOML) without triggering grammar download
-          SENTRUX_SKIP_GRAMMAR_DOWNLOAD=1 cargo run -- --version || true
+          ruff check sentrux tests
 
-      - name: Test
-        run: cargo test
+      - name: Format check with black
+        run: |
+          black --check sentrux tests
 
-      - name: Build release
-        run: cargo build --release
+      - name: Run tests
+        run: |
+          pytest tests/ -v --cov=sentrux
+
+      - name: Test CLI
+        run: |
+          sentrux scan .
+          sentrux check .
