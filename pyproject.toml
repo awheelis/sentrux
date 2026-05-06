@@ -25,10 +25,7 @@ test = ["pytest>=7.0", "pytest-cov>=4.0"]
 sentrux = "sentrux.cli.main:main"
 
 [tool.setuptools]
-packages = ["sentrux"]
-
-[tool.setuptools.package-data]
-sentrux = []
+packages = ["sentrux", "sentrux.cli", "sentrux.core", "sentrux.mcp", "sentrux.models", "sentrux.utils"]
 
 [tool.black]
 line-length = 100
