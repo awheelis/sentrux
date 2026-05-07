@@ -12,6 +12,46 @@ class Metric:
 
 
 @dataclass
+class Violation:
+    """A specific, actionable quality violation tied to a file or cycle."""
+
+    file_path: str
+    metric: str  # "equality" | "acyclicity" | "depth" | "modularity" | "redundancy"
+    description: str
+    actual_value: float
+    threshold: float
+    priority: str  # "critical" | "high" | "medium" | "low"
+    suggested_action: str
+
+    def to_dict(self) -> dict:
+        return {
+            "file_path": self.file_path,
+            "metric": self.metric,
+            "description": self.description,
+            "actual_value": self.actual_value,
+            "threshold": self.threshold,
+            "priority": self.priority,
+            "suggested_action": self.suggested_action,
+        }
+
+
+@dataclass
+class DetailedReport:
+    """Structured per-file/per-cycle violations for AI agent consumption."""
+
+    violations: List[Violation] = field(default_factory=list)
+    cycles: List[List[str]] = field(default_factory=list)
+    top_offenders: List[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        return {
+            "violations": [v.to_dict() for v in self.violations],
+            "cycles": self.cycles,
+            "top_offenders": self.top_offenders,
+        }
+
+
+@dataclass
 class QualityScore:
     """Overall quality score and component metrics."""
 
@@ -58,6 +98,7 @@ class AnalysisResult:
     quality_score: Optional[QualityScore] = None
     rules_violations: List[str] = field(default_factory=list)
     dependencies: Dict[str, List[str]] = field(default_factory=dict)
+    detailed_report: Optional["DetailedReport"] = None
 
     def to_dict(self) -> dict:
         return {
@@ -66,4 +107,5 @@ class AnalysisResult:
             "rules_violations": self.rules_violations,
             "file_count": len(self.files),
             "dependencies": self.dependencies,
+            "detailed_report": self.detailed_report.to_dict() if self.detailed_report else None,
         }

@@ -2,7 +2,7 @@
 
 from typing import Dict, List
 
-from sentrux.models.analysis import AnalysisResult, QualityScore
+from sentrux.models.analysis import AnalysisResult, QualityScore, Violation
 
 
 class MetricsCalculator:
@@ -215,3 +215,125 @@ class MetricsCalculator:
             max_depth = max(max_depth, depth)
 
         return max_depth
+
+    @staticmethod
+    def _get_equality_violations(analysis: AnalysisResult) -> List[Violation]:
+        """Return a Violation for each file whose size or CC is an outlier."""
+        if len(analysis.files) < 2:
+            return []
+
+        sizes = [f.line_count for f in analysis.files.values()]
+        complexities = [f.cyclomatic_complexity for f in analysis.files.values()]
+        avg_size = sum(sizes) / len(sizes) or 1
+        avg_cc = sum(complexities) / len(complexities) or 1
+
+        violations: List[Violation] = []
+        for file_path, fa in analysis.files.items():
+            size_ratio = fa.line_count / avg_size
+            cc_ratio = fa.cyclomatic_complexity / avg_cc if avg_cc else 0
+
+            ratio = max(size_ratio, cc_ratio)
+            if ratio < 1.5:
+                continue
+
+            priority = "critical" if ratio >= 3.0 else "high" if ratio >= 2.0 else "medium"
+            violations.append(
+                Violation(
+                    file_path=file_path,
+                    metric="equality",
+                    description=(
+                        f"{fa.line_count} lines ({size_ratio:.1f}x avg {avg_size:.0f}), "
+                        f"CC {fa.cyclomatic_complexity:.1f} ({cc_ratio:.1f}x avg {avg_cc:.1f})"
+                    ),
+                    actual_value=round(ratio, 2),
+                    threshold=1.5,
+                    priority=priority,
+                    suggested_action=(
+                        f"Extract functions from {file_path} into smaller modules; "
+                        f"target <{int(avg_size * 1.5):.0f} lines per file"
+                    ),
+                )
+            )
+        return violations
+
+    @staticmethod
+    def _get_acyclicity_violations(analysis: AnalysisResult) -> List[Violation]:
+        """Return a Violation for each detected dependency cycle."""
+        if not analysis.dependencies:
+            return []
+
+        cycles = MetricsCalculator._detect_cycles(analysis.dependencies)
+        violations: List[Violation] = []
+        for cycle in cycles:
+            cycle_str = " -> ".join(cycle)
+            violations.append(
+                Violation(
+                    file_path=cycle[0],
+                    metric="acyclicity",
+                    description=f"Circular dependency: {cycle_str}",
+                    actual_value=1.0,
+                    threshold=0.0,
+                    priority="critical",
+                    suggested_action=(
+                        f"Break cycle {cycle_str} by moving shared logic to a new "
+                        f"module or using dependency injection"
+                    ),
+                )
+            )
+        return violations
+
+    @staticmethod
+    def _get_depth_violations(analysis: AnalysisResult) -> List[Violation]:
+        """Return a Violation for each file with import depth exceeding the threshold."""
+        violations: List[Violation] = []
+        threshold = MetricsCalculator.DEPTH_THRESHOLD
+
+        for file_path, fa in analysis.files.items():
+            depth = MetricsCalculator._calculate_import_depth(fa.imports)
+            if depth <= threshold:
+                continue
+
+            ratio = depth / threshold
+            priority = "high" if ratio >= 2.0 else "medium"
+            violations.append(
+                Violation(
+                    file_path=file_path,
+                    metric="depth",
+                    description=f"Max import depth {depth} (threshold: {threshold})",
+                    actual_value=float(depth),
+                    threshold=float(threshold),
+                    priority=priority,
+                    suggested_action=(
+                        f"Flatten import chain in {file_path}; introduce an "
+                        f"intermediate facade module to reduce nesting"
+                    ),
+                )
+            )
+        return violations
+
+    @staticmethod
+    def _get_redundancy_violations(analysis: AnalysisResult) -> List[Violation]:
+        """Return a Violation per duplicated function or class name across the project."""
+        name_to_files: Dict[str, List[str]] = {}
+        for file_path, fa in analysis.files.items():
+            for name in fa.functions + fa.classes:
+                name_to_files.setdefault(name, []).append(file_path)
+
+        violations: List[Violation] = []
+        for name, files in name_to_files.items():
+            if len(files) < 2:
+                continue
+            violations.append(
+                Violation(
+                    file_path=files[0],
+                    metric="redundancy",
+                    description=f"'{name}' defined in {len(files)} files: {', '.join(files)}",
+                    actual_value=float(len(files)),
+                    threshold=1.0,
+                    priority="low",
+                    suggested_action=(
+                        f"Consolidate duplicate '{name}' definitions into a single shared module"
+                    ),
+                )
+            )
+        return violations
