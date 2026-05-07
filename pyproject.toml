@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "sentrux"
-version = "0.1.0"
+version = "0.1.1"
 description = "Structural quality analysis and governance tool for AI-assisted code development"
 readme = "README.md"
 license = {text = "MIT"}
