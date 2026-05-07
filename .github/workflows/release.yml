@@ -1,4 +1,4 @@
-name: Auto Release
+name: Release and Publish
 
 on:
   push:
@@ -9,9 +9,15 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write
+    environment:
+      name: release
+      url: https://pypi.org/p/sentrux
 
     steps:
       - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v2
 
       - name: Get version from pyproject.toml
         id: version
@@ -29,11 +35,19 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Build
+        if: steps.tag_check.outputs.exists == 'false'
+        run: uv build
+
       - name: Create release
         if: steps.tag_check.outputs.exists == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${{ steps.version.outputs.tag }}" \
+          gh release create "${{ steps.version.outputs.tag }}" dist/* \
             --title "${{ steps.version.outputs.tag }}" \
             --generate-notes
+
+      - name: Publish to PyPI
+        if: steps.tag_check.outputs.exists == 'false'
+        uses: pypa/gh-action-pypi-publish@release/v1
