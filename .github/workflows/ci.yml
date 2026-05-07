@@ -46,3 +46,8 @@ jobs:
         run: |
           uv run sentrux scan .
           uv run sentrux check .
+
+      - name: Test MCP server
+        run: |
+          echo '{"method":"initialize","params":{"workspace":"."}}' | uv run sentrux --mcp | python -c "import sys,json; d=json.load(sys.stdin); assert 'serverInfo' in d, f'unexpected: {d}'"
+          echo '{"method":"tools/list","params":{}}' | uv run sentrux --mcp | python -c "import sys,json; d=json.load(sys.stdin); assert 'tools' in d and len(d['tools']) > 0"

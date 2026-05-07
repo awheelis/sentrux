@@ -195,6 +195,7 @@ def main():
     """Entry point for the CLI."""
     if "--mcp" in sys.argv:
         from sentrux.mcp.server import run_mcp_server
+
         run_mcp_server()
     else:
         cli()
