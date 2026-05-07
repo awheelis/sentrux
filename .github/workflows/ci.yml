@@ -35,6 +35,9 @@ jobs:
           uv run ruff check sentrux tests
 
       - name: Format check with black
+        # black 26.x (3.10+) and black 25.x (3.9) have incompatible stable styles;
+        # skip on 3.9 to avoid false failures unrelated to code correctness
+        if: matrix.python-version != '3.9'
         run: |
           uv run black --check sentrux tests
 
