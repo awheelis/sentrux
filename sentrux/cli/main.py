@@ -157,9 +157,7 @@ def _print_analysis_summary(analysis) -> None:
 
     if analysis.detailed_report and analysis.detailed_report.violations:
         report = analysis.detailed_report
-        violations = sorted(
-            report.violations, key=lambda v: _PRIORITY_ORDER.get(v.priority, 3)
-        )
+        violations = sorted(report.violations, key=lambda v: _PRIORITY_ORDER.get(v.priority, 3))
         click.echo(f"\n=== Actionable Violations ({len(violations)} found) ===")
         for v in violations:
             icon = _PRIORITY_ICON.get(v.priority, "[INFO]")
