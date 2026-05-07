@@ -29,6 +29,7 @@ packages = ["sentrux", "sentrux.cli", "sentrux.core", "sentrux.mcp", "sentrux.mo
 
 [tool.black]
 line-length = 100
+target-version = ["py39"]
 
 [tool.ruff]
 line-length = 100
