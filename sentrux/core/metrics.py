@@ -2,6 +2,7 @@
 
 from typing import Dict, List
 
+from sentrux.core._graph import detect_cycles
 from sentrux.models.analysis import AnalysisResult, QualityScore
 
 
@@ -178,30 +179,7 @@ class MetricsCalculator:
     @staticmethod
     def _detect_cycles(graph: Dict[str, List[str]]) -> List[List[str]]:
         """Detect cycles in dependency graph using DFS."""
-        cycles = []
-        visited = set()
-        rec_stack = set()
-
-        def dfs(node: str, path: List[str]) -> None:
-            visited.add(node)
-            rec_stack.add(node)
-
-            for neighbor in graph.get(node, []):
-                if neighbor not in visited:
-                    dfs(neighbor, path + [neighbor])
-                elif neighbor in rec_stack:
-                    cycle_start = path.index(neighbor)
-                    cycle = path[cycle_start:] + [neighbor]
-                    if cycle not in cycles:
-                        cycles.append(cycle)
-
-            rec_stack.discard(node)
-
-        for node in graph:
-            if node not in visited:
-                dfs(node, [node])
-
-        return cycles
+        return detect_cycles(graph)
 
     @staticmethod
     def _calculate_import_depth(imports: List[str]) -> int:

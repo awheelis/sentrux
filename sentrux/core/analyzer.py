@@ -5,6 +5,7 @@ from typing import Dict, List, Union
 
 from sentrux.core.metrics import MetricsCalculator
 from sentrux.core.parser import ProjectParser
+from sentrux.core.recommendations import RecommendationEngine
 from sentrux.models.analysis import AnalysisResult
 
 
@@ -34,6 +35,9 @@ class ProjectAnalyzer:
 
         # Calculate quality score
         analysis.quality_score = MetricsCalculator.calculate_quality_score(analysis)
+
+        # Generate actionable violation details
+        analysis.detailed_report = RecommendationEngine.generate(analysis)
 
         return analysis
 

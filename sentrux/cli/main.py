@@ -132,6 +132,10 @@ def gate(path: str, save: bool):
         raise SystemExit(1)
 
 
+_PRIORITY_ICON = {"critical": "[CRITICAL]", "high": "[HIGH]", "medium": "[MEDIUM]", "low": "[LOW]"}
+_PRIORITY_ORDER = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+
+
 def _print_analysis_summary(analysis) -> None:
     """Print analysis summary in human-readable format."""
     click.echo(f"\nProject: {analysis.project_path}")
@@ -150,6 +154,19 @@ def _print_analysis_summary(analysis) -> None:
         click.echo(f"\n⚠️  Rule Violations: {len(analysis.rules_violations)}")
         for violation in analysis.rules_violations:
             click.echo(f"   - {violation}")
+
+    if analysis.detailed_report and analysis.detailed_report.violations:
+        report = analysis.detailed_report
+        violations = sorted(report.violations, key=lambda v: _PRIORITY_ORDER.get(v.priority, 3))
+        click.echo(f"\n=== Actionable Violations ({len(violations)} found) ===")
+        for v in violations:
+            icon = _PRIORITY_ICON.get(v.priority, "[INFO]")
+            click.echo(f"\n{icon} {v.file_path} — {v.metric.capitalize()}")
+            click.echo(f"  {v.description}")
+            click.echo(f"  → {v.suggested_action}")
+
+        if report.top_offenders:
+            click.echo(f"\nTop files to fix: {', '.join(report.top_offenders)}")
 
 
 def main():

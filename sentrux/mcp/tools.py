@@ -55,6 +55,9 @@ class MCPTools:
             "result": {
                 "health": analysis.quality_score.to_dict(),
                 "file_count": len(analysis.files),
+                "detailed_report": (
+                    analysis.detailed_report.to_dict() if analysis.detailed_report else None
+                ),
             },
         }
 
@@ -74,14 +77,20 @@ class MCPTools:
 
             rules = ConfigLoader.load_rules(workspace)
             engine = RulesEngine(rules)
-            violations = engine.check_violations(analysis)
+            rule_violations = engine.check_violations(analysis)
 
+            detailed = analysis.detailed_report
             return {
                 "status": "ok",
                 "result": {
-                    "violations": violations,
-                    "passed": len(violations) == 0,
-                    "violation_count": len(violations),
+                    "rule_violations": rule_violations,
+                    "passed": len(rule_violations) == 0,
+                    "violation_count": len(rule_violations),
+                    "detailed_violations": (
+                        [v.to_dict() for v in detailed.violations] if detailed else []
+                    ),
+                    "top_offenders": detailed.top_offenders if detailed else [],
+                    "cycles": detailed.cycles if detailed else [],
                 },
             }
         except Exception as e:
