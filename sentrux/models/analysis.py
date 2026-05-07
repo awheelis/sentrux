@@ -21,7 +21,6 @@ class Violation:
     actual_value: float
     threshold: float
     priority: str  # "critical" | "high" | "medium" | "low"
-    suggested_action: str
 
     def to_dict(self) -> dict:
         return {
@@ -31,7 +30,6 @@ class Violation:
             "actual_value": self.actual_value,
             "threshold": self.threshold,
             "priority": self.priority,
-            "suggested_action": self.suggested_action,
         }
 
 

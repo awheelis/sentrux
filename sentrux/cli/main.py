@@ -20,7 +20,13 @@ def cli():
 @cli.command()
 @click.argument("path", type=click.Path(exists=True), default=".")
 @click.option("--json", "output_json", is_flag=True, help="Output in JSON format")
-def scan(path: str, output_json: bool):
+@click.option(
+    "-v",
+    "--verbose",
+    count=True,
+    help="Increase verbosity: -v critical/high, -vv +medium, -vvv +low",
+)
+def scan(path: str, output_json: bool, verbose: int):
     """Analyze code quality of a Python project."""
     try:
         project_path = Path(path)
@@ -30,7 +36,7 @@ def scan(path: str, output_json: bool):
         if output_json:
             click.echo(json.dumps(analysis.to_dict(), indent=2))
         else:
-            _print_analysis_summary(analysis)
+            _print_analysis_summary(analysis, verbose)
 
     except Exception as e:
         click.echo(f"Error: {e}", err=True)
@@ -136,37 +142,52 @@ _PRIORITY_ICON = {"critical": "[CRITICAL]", "high": "[HIGH]", "medium": "[MEDIUM
 _PRIORITY_ORDER = {"critical": 0, "high": 1, "medium": 2, "low": 3}
 
 
-def _print_analysis_summary(analysis) -> None:
-    """Print analysis summary in human-readable format."""
-    click.echo(f"\nProject: {analysis.project_path}")
-    click.echo(f"Files analyzed: {len(analysis.files)}")
+def _print_analysis_summary(analysis, verbose: int = 0) -> None:
+    """Print analysis summary. Verbosity: 0=worst only, 1=high+, 2=medium+, 3=all."""
+    score = analysis.quality_score
+    report = analysis.detailed_report
 
-    if analysis.quality_score:
-        score = analysis.quality_score
-        click.echo(f"\n📊 Quality Score: {score.overall_score}/10000")
-        click.echo(f"   Modularity:     {score.modularity:.2f}")
-        click.echo(f"   Acyclicity:     {score.acyclicity:.2f}")
-        click.echo(f"   Depth:          {score.depth:.2f}")
-        click.echo(f"   Equality:       {score.equality:.2f}")
-        click.echo(f"   Redundancy:     {score.redundancy:.2f}")
+    if score:
+        click.echo(f"Quality Score: {score.overall_score}/10000")
+        if verbose >= 1:
+            click.echo(f"  Modularity:  {score.modularity:.2f}")
+            click.echo(f"  Acyclicity:  {score.acyclicity:.2f}")
+            click.echo(f"  Depth:       {score.depth:.2f}")
+            click.echo(f"  Equality:    {score.equality:.2f}")
+            click.echo(f"  Redundancy:  {score.redundancy:.2f}")
 
-    if analysis.rules_violations:
-        click.echo(f"\n⚠️  Rule Violations: {len(analysis.rules_violations)}")
-        for violation in analysis.rules_violations:
-            click.echo(f"   - {violation}")
+    if report and report.violations:
+        violations_sorted = sorted(
+            report.violations, key=lambda v: _PRIORITY_ORDER.get(v.priority, 3)
+        )
 
-    if analysis.detailed_report and analysis.detailed_report.violations:
-        report = analysis.detailed_report
-        violations = sorted(report.violations, key=lambda v: _PRIORITY_ORDER.get(v.priority, 3))
-        click.echo(f"\n=== Actionable Violations ({len(violations)} found) ===")
-        for v in violations:
+        if verbose == 0:
+            v = violations_sorted[0]
             icon = _PRIORITY_ICON.get(v.priority, "[INFO]")
             click.echo(f"\n{icon} {v.file_path} — {v.metric.capitalize()}")
             click.echo(f"  {v.description}")
-            click.echo(f"  → {v.suggested_action}")
+            remaining = len(violations_sorted) - 1
+            tail = (
+                f"  ({remaining} more violation{'s' if remaining > 1 else ''}; use -v to see more)"
+            )
+            click.echo(tail) if remaining else None
+        else:
+            allowed = (
+                {"critical", "high", "medium", "low"}
+                if verbose >= 3
+                else {"critical", "high", "medium"} if verbose >= 2 else {"critical", "high"}
+            )
+            shown = [v for v in violations_sorted if v.priority in allowed]
+            click.echo(f"\nViolations ({len(shown)} shown, {len(violations_sorted)} total):")
+            for v in shown:
+                icon = _PRIORITY_ICON.get(v.priority, "[INFO]")
+                click.echo(f"\n{icon} {v.file_path} — {v.metric.capitalize()}")
+                click.echo(f"  {v.description}")
 
-        if report.top_offenders:
-            click.echo(f"\nTop files to fix: {', '.join(report.top_offenders)}")
+    if analysis.rules_violations:
+        click.echo(f"\nRule violations: {len(analysis.rules_violations)}")
+        for rv in analysis.rules_violations:
+            click.echo(f"  - {rv}")
 
 
 def main():

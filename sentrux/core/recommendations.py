@@ -51,10 +51,6 @@ def _equality_violations(analysis: AnalysisResult) -> List[Violation]:
                 actual_value=round(ratio, 2),
                 threshold=1.5,
                 priority=priority,
-                suggested_action=(
-                    f"Extract functions from {file_path} into smaller modules; "
-                    f"target <{int(avg_size * 1.5):.0f} lines per file"
-                ),
             )
         )
     return violations
@@ -75,10 +71,6 @@ def _acyclicity_violations(analysis: AnalysisResult) -> List[Violation]:
                 actual_value=1.0,
                 threshold=0.0,
                 priority="critical",
-                suggested_action=(
-                    f"Break cycle {cycle_str} by moving shared logic to a new "
-                    f"module or using dependency injection"
-                ),
             )
         )
     return violations
@@ -101,10 +93,6 @@ def _depth_violations(analysis: AnalysisResult) -> List[Violation]:
                 actual_value=float(depth),
                 threshold=float(threshold),
                 priority=priority,
-                suggested_action=(
-                    f"Flatten import chain in {file_path}; introduce an "
-                    f"intermediate facade module to reduce nesting"
-                ),
             )
         )
     return violations
@@ -127,9 +115,6 @@ def _redundancy_violations(analysis: AnalysisResult) -> List[Violation]:
                 actual_value=float(len(files)),
                 threshold=1.0,
                 priority="low",
-                suggested_action=(
-                    f"Consolidate duplicate '{name}' definitions into a single shared module"
-                ),
             )
         )
     return violations
