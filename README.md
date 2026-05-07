@@ -37,6 +37,10 @@ When your agent writes code, you see immediately whether quality improved or deg
 **Install** (Python 3.9+)
 
 ```bash
+# Using uv (recommended)
+uv pip install sentrux
+
+# Or using pip
 pip install sentrux
 ```
 
@@ -75,6 +79,11 @@ Cursor / Windsurf / any MCP client — add to your MCP config:
 ```bash
 git clone https://github.com/sentrux/sentrux.git
 cd sentrux
+
+# Using uv (recommended)
+uv sync
+
+# Or using pip
 pip install -e .
 ```
 
